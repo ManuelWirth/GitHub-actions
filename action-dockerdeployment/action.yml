@@ -14,10 +14,18 @@ inputs:
   image-name:
     description: 'Docker image name'
     required: true
+  server-host:
+    description: 'Server host'
+    required: true
+  server-username:
+    description: 'Server username'
+    required: true
   ssh-private-key:
     description: 'SSH private key'
     required: true
-
+  ssh-port:
+    description: 'SSH port'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -28,10 +36,10 @@ runs:
     - name: Setup SSH and deploy
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: ${{ secrets.SSH_PORT }}
+        host: ${{ inputs.server-host }}
+        username: ${{ inputs.server-username }}
+        key: ${{ inputs.ssh-private-key }}
+        port: ${{ inputs.ssh-port }}
         script: |
           echo "Deploying via SSH"
           # Your deployment commands here

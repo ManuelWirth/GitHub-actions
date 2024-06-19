@@ -1,0 +1,40 @@
+name: 'Deploy Docker to DigitalOcean'
+description: Deploys a Docker container to DigitalOcean
+
+inputs:
+  docker-user:
+    description: 'DockerHub username'
+    required: true
+  docker-password:
+    description: 'DockerHub password'
+    required: true
+  digital-ocean-ip:
+    description: 'DigitalOcean droplet IP address'
+    required: true
+  image-name:
+    description: 'Docker image name'
+    required: true
+  ssh-private-key:
+    description: 'SSH private key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Login to DockerHub
+      run: echo "${{ inputs.docker-password }}" | docker login -u "${{ inputs.docker-user }}" --password-stdin
+      shell: bash
+
+    - name: SSH and deploy to DigitalOcean
+      run: |
+        echo "${{ inputs.ssh-private-key }}" > private_key.pem
+        chmod 600 private_key.pem
+        ssh -o StrictHostKeyChecking=no -i private_key.pem root@${{ inputs.digital-ocean-ip }} <<EOF
+        docker pull ${{ inputs.docker-user }}/${{ inputs.image-name }}
+        docker stop ${{ inputs.image-name }} || true
+        docker rm ${{ inputs.image-name }} || true
+        docker rmi ${{ inputs.docker-user }}/${{ inputs.image-name }}:current || true
+        docker tag ${{ inputs.docker-user }}/${{ inputs.image-name }}:latest ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
+        docker run -d --restart always --name ${{ inputs.image-name }} -p 80:80 ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
+        EOF
+      shell: bash

@@ -25,16 +25,20 @@ runs:
       run: echo "${{ inputs.docker-password }}" | docker login -u "${{ inputs.docker-user }}" --password-stdin
       shell: bash
 
-    - name: SSH and deploy to DigitalOcean
-      run: |
-        echo "${{ inputs.ssh-private-key }}" > private_key.pem
-        chmod 600 private_key.pem
-        ssh -o StrictHostKeyChecking=no -i private_key.pem root@${{ inputs.digital-ocean-ip }} <<EOF
-        docker pull ${{ inputs.docker-user }}/${{ inputs.image-name }}
-        docker stop ${{ inputs.image-name }} || true
-        docker rm ${{ inputs.image-name }} || true
-        docker rmi ${{ inputs.docker-user }}/${{ inputs.image-name }}:current || true
-        docker tag ${{ inputs.docker-user }}/${{ inputs.image-name }}:latest ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
-        docker run -d --restart always --name ${{ inputs.image-name }} -p 80:80 ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
-        EOF
-      shell: bash
+- name: Setup SSH and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            echo "Deploying via SSH"
+            # Your deployment commands here
+            docker pull ${{ inputs.docker-user }}/${{ inputs.image-name }}
+            docker stop ${{ inputs.image-name }} || true
+            docker rm ${{ inputs.image-name }} || true
+            docker rmi ${{ inputs.docker-user }}/${{ inputs.image-name }}:current || true
+            docker tag ${{ inputs.docker-user }}/${{ inputs.image-name }}:latest ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
+            docker run -d --restart always --name ${{ inputs.image-name }} -p 80:80 ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
+          shell: bash

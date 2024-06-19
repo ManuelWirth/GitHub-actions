@@ -20,3 +20,4 @@ runs:
 
     - name: Run go test
       run: go test ./...
+      shell: bash

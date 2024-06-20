@@ -33,6 +33,11 @@ runs:
       run: echo "${{ inputs.docker-password }}" | docker login -u "${{ inputs.docker-user }}" --password-stdin
       shell: bash
 
+    - name: Start SSH Agent and Add Key
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ inputs.ssh-private-key }}
+
     - name: Setup SSH and deploy
       uses: appleboy/ssh-action@master
       with:

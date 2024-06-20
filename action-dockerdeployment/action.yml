@@ -1,4 +1,4 @@
-name: 'Deploy Docker to DigitalOcean'
+name: Deploy Docker to DigitalOcean
 description: Deploys a Docker container to DigitalOcean
 
 inputs:
@@ -42,13 +42,14 @@ runs:
 
     - name: Setup SSH and deploy
       run: |
-        ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          docker login -u '${{ secrets.DOCKER_USERNAME }}' -p '${{ secrets.DOCKER_PASSWORD }}';
-          docker pull ${{ secrets.DOCKER_USERNAME }}/repodemo;
-          docker stop repodemo || true;
-          docker rm repodemo || true;
-          docker rmi ${{ secrets.DOCKER_USERNAME }}/repodemo:current || true;
-          docker tag ${{ secrets.DOCKER_USERNAME }}/repodemo:latest ${{ secrets.DOCKER_USERNAME }}/repodemo:current;
-          docker run -d --restart always --name repodemo -p 80:80 ${{ secrets.DOCKER_USERNAME }}/repodemo:current
+        ssh -o StrictHostKeyChecking=no -p ${{ inputs.ssh-port }} ${{ inputs.server-username }}@${{ inputs.server-host }} "
+          docker login -u '${{ inputs.docker-user }}' -p '${{ inputs.docker-password }}';
+          docker pull '${{ inputs.docker-user }}/${{ inputs.image-name }}';
+          docker stop '${{ inputs.image-name }}' || true;
+          docker rm '${{ inputs.image-name }}' || true;
+          docker rmi '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' || true;
+          docker tag '${{ inputs.docker-user }}/${{ inputs.image-name }}:latest' '${{ inputs.docker-user }}/${{ inputs.image-name }}:current';
+          docker run -d --restart always --name '${{ inputs.image-name }}' -p 80:80 '${{ inputs.docker-user }}/${{ inputs.image-name }}:current'
         "
       shell: bash
+

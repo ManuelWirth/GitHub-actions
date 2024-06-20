@@ -26,6 +26,7 @@ inputs:
   ssh-port:
     description: 'SSH port'
     required: true
+
 runs:
   using: 'composite'
   steps:
@@ -34,23 +35,21 @@ runs:
       shell: bash
 
     - name: Start SSH Agent and Add Key
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ inputs.ssh-private-key }}
+      run: |
+        eval "$(ssh-agent -s)"
+        echo "${{ inputs.ssh-private-key }}" | tr -d '\r' | ssh-add -
+      shell: bash
 
     - name: Setup SSH and deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ inputs.server-host }}
-        username: ${{ inputs.server-username }}
-        key: ${{ inputs.ssh-private-key }}
-        port: ${{ inputs.ssh-port }}
-        script: |
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ inputs.ssh-port }} ${{ inputs.server-username }}@${{ inputs.server-host }} << 'EOF'
           echo "Deploying via SSH"
-          # Your deployment commands here
+          docker login -u "${{ inputs.docker-user }}" -p "${{ inputs.docker-password }}"
           docker pull ${{ inputs.docker-user }}/${{ inputs.image-name }}
           docker stop ${{ inputs.image-name }} || true
           docker rm ${{ inputs.image-name }} || true
           docker rmi ${{ inputs.docker-user }}/${{ inputs.image-name }}:current || true
           docker tag ${{ inputs.docker-user }}/${{ inputs.image-name }}:latest ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
           docker run -d --restart always --name ${{ inputs.image-name }} -p 80:80 ${{ inputs.docker-user }}/${{ inputs.image-name }}:current
+        EOF
+      shell: bash

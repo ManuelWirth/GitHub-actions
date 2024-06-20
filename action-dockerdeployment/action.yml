@@ -35,12 +35,12 @@ runs:
       shell: bash
 
     - name: Start SSH Agent and Add Key
-      run: |
-        eval "$(ssh-agent -s)"
-        echo "${{ inputs.ssh-private-key }}" | tr -d '\r' | ssh-add -
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ inputs.ssh-private-key }}
       shell: bash
 
-    - name: Setup SSH and deploy
+    - name: SSH Deploy
       run: |
         ssh -o StrictHostKeyChecking=no -p ${{ inputs.ssh-port }} ${{ inputs.server-username }}@${{ inputs.server-host }} "
           docker login -u '${{ inputs.docker-user }}' -p '${{ inputs.docker-password }}' &&

@@ -26,6 +26,9 @@ inputs:
   ssh-port:
     description: 'SSH port'
     required: true
+  tags:
+    description: 'Tag of the image'
+    required: true
 
 runs:
   using: 'composite'
@@ -51,6 +54,6 @@ runs:
           docker stop '${{ inputs.image-name }}' || true &&
           docker rm '${{ inputs.image-name }}' || true &&
           docker rmi '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' || true &&
-          docker tag '${{ inputs.docker-user }}/${{ inputs.image-name }}:latest' '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' &&
+          docker tag '${{ inputs.docker-user }}/${{ inputs.image-name }}:${{ tags }}' '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' &&
           docker run -d --restart always --name '${{ inputs.image-name }}' -p 80:80 '${{ inputs.docker-user }}/${{ inputs.image-name }}:current'
       

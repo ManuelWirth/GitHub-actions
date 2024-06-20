@@ -38,7 +38,6 @@ runs:
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ inputs.ssh-private-key }}
-      shell: bash
 
     - name: SSH Deploy
       run: |

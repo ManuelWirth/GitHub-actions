@@ -36,6 +36,7 @@ runs:
 
     - name: Install sshpass
       run: sudo apt-get install -y sshpass
+      shell: bash
 
     - name: Deploy via SSH
       uses: appleboy/ssh-action@master
@@ -52,3 +53,4 @@ runs:
           docker rmi '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' || true &&
           docker tag '${{ inputs.docker-user }}/${{ inputs.image-name }}:latest' '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' &&
           docker run -d --restart always --name '${{ inputs.image-name }}' -p 80:80 '${{ inputs.docker-user }}/${{ inputs.image-name }}:current'
+      

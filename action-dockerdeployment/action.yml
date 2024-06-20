@@ -20,8 +20,8 @@ inputs:
   server-username:
     description: 'Server username'
     required: true
-  ssh-private-key:
-    description: 'SSH private key'
+  server-password:
+    description: 'Server Password'
     required: true
   ssh-port:
     description: 'SSH port'
@@ -34,14 +34,17 @@ runs:
       run: echo "${{ inputs.docker-password }}" | docker login -u "${{ inputs.docker-user }}" --password-stdin
       shell: bash
 
-    - name: Start SSH Agent and Add Key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ inputs.ssh-private-key }}
+    - name: Install sshpass
+      run: sudo apt-get install -y sshpass
 
-    - name: SSH Deploy
-      run: |
-        ssh -o StrictHostKeyChecking=no -p ${{ inputs.ssh-port }} ${{ inputs.server-username }}@${{ inputs.server-host }} "
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ inputs.server-host }}
+        username: ${{ inputs.server-username }}
+        password: ${{ inputs.server-password }}
+        port: ${{ inputs.ssh-port }}
+        script: |
           docker login -u '${{ inputs.docker-user }}' -p '${{ inputs.docker-password }}' &&
           docker pull '${{ inputs.docker-user }}/${{ inputs.image-name }}' &&
           docker stop '${{ inputs.image-name }}' || true &&
@@ -49,5 +52,3 @@ runs:
           docker rmi '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' || true &&
           docker tag '${{ inputs.docker-user }}/${{ inputs.image-name }}:latest' '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' &&
           docker run -d --restart always --name '${{ inputs.image-name }}' -p 80:80 '${{ inputs.docker-user }}/${{ inputs.image-name }}:current'
-        "
-      shell: bash

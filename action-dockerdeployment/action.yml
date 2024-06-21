@@ -38,13 +38,6 @@ runs:
       run: sudo apt-get install -y sshpass
       shell: bash
 
-    - name: Get Latest Docker Image Tag
-      id: get-latest-tag
-      run: |
-        latest_tag=$(curl -sS "https://registry.hub.docker.com/v2/repositories/manuwirth/repodemo/tags/" | jq -r '.results | map(.name) | .[0]')
-        echo "::set-output name=tag::$latest_tag"
-      shell: bash
-
     - name: Deploy via SSH
       uses: appleboy/ssh-action@master
       with:
@@ -54,8 +47,8 @@ runs:
         port: ${{ inputs.ssh-port }}
         script: |
           docker login -u '${{ inputs.docker-user }}' -p '${{ inputs.docker-password }}' &&
-          docker pull manuwirth/repodemo:${{ steps.get-latest-tag.outputs.tag }} &&
+          docker pull manuwirth/repodemo:latest &&
           docker stop '${{ inputs.image-name }}' || true &&
           docker rm '${{ inputs.image-name }}' || true &&
           docker rmi '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' || true &&
-          docker run -d --restart always --name '${{ inputs.image-name }}' -p 80:80 manuwirth/repodemo:${{ steps.get-latest-tag.outputs.tag }}
+          docker run -d --restart always --name '${{ inputs.image-name }}' -p 80:80 manuwirth/repodemo:latest

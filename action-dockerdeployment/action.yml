@@ -48,7 +48,7 @@ runs:
         port: ${{ inputs.ssh-port }}
         script: |
           docker login -u '${{ inputs.docker-user }}' -p '${{ inputs.docker-password }}' &&
-          docker pull manuwirth/repodemo:latest &&
+          docker pull manuwirth/repodemo:main-587a2d5 &&
           docker stop '${{ inputs.image-name }}' || true &&
           docker rm '${{ inputs.image-name }}' || true &&
           docker rmi '${{ inputs.docker-user }}/${{ inputs.image-name }}:current' || true &&
